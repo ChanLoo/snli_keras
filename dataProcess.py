@@ -3,7 +3,7 @@
 Data processing code for SNLI corpus.
 ==================
 author: ChanLo
-date: 2018.3.10
+e-mail.com: chanlo@protonmail.ch
 ==================
 ...
 '''
@@ -16,13 +16,22 @@ import tempfile
 import numpy as np
 np.random.seed(1337)    # for reproducibility
 
+from keras.utils import np_utils
+
 class data_process(object):
     def __init__(self,filename):
         self.filename = filename
+        self.LABELS = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
         pass
 
     def get_data(self):
-        
+        data_list = list(self.get_sentence())
+        premise = [sentence_1 for label,sentence_1,sentence_2 in data_list]
+        hypothesis = [sentence_2 for label,sentence_1,sentence_2 in data_list]
+        #print(max(len(x.split()) for x in premise))
+        #print(max(len(x.split()) for x in hypothesis))
+        label_mark = np.array([self.LABELS[label] for label,sentence_1,sentence_2 in data_list])
+        label_mark = np_utils.to_categorical(label_mark,len(self.LABELS))
         pass
 
     def get_sentence(self):
@@ -33,15 +42,8 @@ class data_process(object):
             Sentence_1 = data['sentence1']
             sentence_2 = ' '.join(self.extract_token_from_binary_parse(data['sentence2_binary_parse']))
             Sentence_2 = data['sentence2']
-            '''
-            print(label)
-            print(sentence_1)
-            print(Sentence_1)
-            print(sentence_2)
-            print(Sentence_2)
-            if i>=2:
-                break
-            '''
+            if label == '-':
+                continue
             yield (label,sentence_1,sentence_2)
     
     def extract_token_from_binary_parse(self,parse):
@@ -53,4 +55,4 @@ if __name__ == '__main__':
     dev_data = '../corpus/snli/snli_1.0_dev.jsonl'
     test_data = '../corpus/snli/snli_1.0_test.jsonl'
     data_process = data_process(test_data)
-    data_process.get_sentence()
+    data_process.get_data()

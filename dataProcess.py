@@ -16,31 +16,41 @@ import tempfile
 import numpy as np
 np.random.seed(1337)    # for reproducibility
 
-class dataProcess(object):
+class data_process(object):
     def __init__(self,filename):
         self.filename = filename
         pass
 
-    def getData(self):
+    def get_data(self):
+        
         pass
 
-    def getSentence(self):
+    def get_sentence(self):
         for i,line in enumerate(open(self.filename)):
             data = json.loads(line)
-            print(i)
-            print(line)
-            print(data)
-            if i >= 2:
+            label = data['gold_label']
+            sentence_1 = ' '.join(self.extract_token_from_binary_parse(data['sentence1_binary_parse']))
+            Sentence_1 = data['sentence1']
+            sentence_2 = ' '.join(self.extract_token_from_binary_parse(data['sentence2_binary_parse']))
+            Sentence_2 = data['sentence2']
+            '''
+            print(label)
+            print(sentence_1)
+            print(Sentence_1)
+            print(sentence_2)
+            print(Sentence_2)
+            if i>=2:
                 break
-            
-
-    def extractTokenFromBinaryParse(self):
-        return self.parse.replace('(',' ').replace(')',' ').replace('-LRB-','(').replace('-RRB-',')').split()
+            '''
+            yield (label,sentence_1,sentence_2)
     
+    def extract_token_from_binary_parse(self,parse):
+        return parse.replace('(',' ').replace(')',' ').replace('-LRB-','(').replace('-RRB-',')').split()
+
 
 if __name__ == '__main__':
-    trainData = '../corpus/snli/snli_1.0_train.jsonl'
-    devData = '../corpus/snli/snli_1.0_dev.jsonl'
-    testData = '../corpus/snli/snli_1.0_test.jsonl'
-    dataProcess = dataProcess(testData)
-    dataProcess.getSentence()
+    train_data = '../corpus/snli/snli_1.0_train.jsonl'
+    dev_data = '../corpus/snli/snli_1.0_dev.jsonl'
+    test_data = '../corpus/snli/snli_1.0_test.jsonl'
+    data_process = data_process(test_data)
+    data_process.get_sentence()

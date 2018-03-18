@@ -19,23 +19,22 @@ np.random.seed(1337)    # for reproducibility
 from keras.utils import np_utils
 
 class data_process(object):
-    def __init__(self,filename):
-        self.filename = filename
+    def __init__(self):
         self.LABELS = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
         pass
 
-    def get_data(self):
-        data_list = list(self.get_sentence())
+    def get_data(self,filename):
+        data_list = list(self.get_sentence(filename))
         premise = [sentence_1 for label,sentence_1,sentence_2 in data_list]
         hypothesis = [sentence_2 for label,sentence_1,sentence_2 in data_list]
         #print(max(len(x.split()) for x in premise))
         #print(max(len(x.split()) for x in hypothesis))
         label_mark = np.array([self.LABELS[label] for label,sentence_1,sentence_2 in data_list])
         label_mark = np_utils.to_categorical(label_mark,len(self.LABELS))
-        pass
+        return premise,hypothesis,label_mark
 
-    def get_sentence(self):
-        for i,line in enumerate(open(self.filename)):
+    def get_sentence(self,filename):
+        for i,line in enumerate(open(filename)):
             data = json.loads(line)
             label = data['gold_label']
             sentence_1 = ' '.join(self.extract_token_from_binary_parse(data['sentence1_binary_parse']))
@@ -54,5 +53,5 @@ if __name__ == '__main__':
     train_data = '../corpus/snli/snli_1.0_train.jsonl'
     dev_data = '../corpus/snli/snli_1.0_dev.jsonl'
     test_data = '../corpus/snli/snli_1.0_test.jsonl'
-    data_process = data_process(test_data)
-    data_process.get_data()
+    data_process = data_process()
+    data_process.get_data(test_data)

@@ -23,7 +23,7 @@ class data_process(object):
         self.LABELS = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
         pass
 
-    def get_data(self,filename):
+    def get_data(self, filename):
         data_list = list(self.get_sentence(filename))
         premise = [sentence_1 for label,sentence_1,sentence_2 in data_list]
         hypothesis = [sentence_2 for label,sentence_1,sentence_2 in data_list]
@@ -33,7 +33,7 @@ class data_process(object):
         label_mark = np_utils.to_categorical(label_mark,len(self.LABELS))
         return premise,hypothesis,label_mark
 
-    def get_sentence(self,filename):
+    def get_sentence(self, filename):
         for i,line in enumerate(open(filename)):
             data = json.loads(line)
             label = data['gold_label']
@@ -44,8 +44,8 @@ class data_process(object):
             if label == '-':
                 continue
             yield (label,sentence_1,sentence_2)
-    
-    def extract_token_from_binary_parse(self,parse):
+
+    def extract_token_from_binary_parse(self, parse):
         return parse.replace('(',' ').replace(')',' ').replace('-LRB-','(').replace('-RRB-',')').split()
 
 

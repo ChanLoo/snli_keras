@@ -9,6 +9,7 @@ e-mail.com: chanlo@protonmail.ch
 '''
 
 import dataProcess
+import gloveUse
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
@@ -55,11 +56,8 @@ print('Vocab size =', len(tokenizer.word_counts)+1)
 
 GLOVE_STORE = 'precomputed_glove.weights'
 if USE_GLOVE:
-    if not os.path.exists(GLOVE_STORE = '.npy'):
-        print('Computing Glove')
-
-        embedding_index = {}
-        file = open('../Word2Vec/Glove/glove.840B.300d.txt')
-        for line in f:
-            values = line.split(' ')
-            word = values[0]
+    use_glove = gloveUse.glove_use()
+    embedding_matrix = use_glove.use_GloVe(GLOVE_STORE, VOCAB, EMBED_HIDDEN_SIZE, tokenizer)
+    embed = Embeddings(VOCAB, EMBED_HIDDEN_SIZE, weights=[embedding_matrix], input_length=MAX_LEN, trainable=TRAIN_EMBED)
+else:
+    embed = Embeddings(VOCAB, EMBED_HIDDEN_SIZE, input_length=MAX_LEN)

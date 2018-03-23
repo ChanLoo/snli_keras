@@ -13,13 +13,12 @@ class glove_use():
             print('Computing GloVe')
 
             embedding_index = {}
-            f = open('../Word2Vec/GloVe/glove.840B.300d.txt')
-            for line in f:
-                values = line.split(' ')
-                word = values[0]
-                coefs = np.asarray(values[1:], dtype='float32')
-                embedding_index[word] = coefs
-            f.close()
+            with open('../Word2Vec/GloVe/glove.840B.300d.txt') as f:
+                for line in f:
+                    values = line.split(' ')
+                    word = values[0]
+                    coefs = np.asarray(values[1:], dtype='float32')
+                    embedding_index[word] = coefs
 
             embedding_matrix = np.zeros((VOCAB, EMBED_HIDDEN_SIZE))
             for word,i in tokenizer.word_index.item():

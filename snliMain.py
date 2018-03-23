@@ -61,3 +61,63 @@ if USE_GLOVE:
     embed = Embeddings(VOCAB, EMBED_HIDDEN_SIZE, weights=[embedding_matrix], input_length=MAX_LEN, trainable=TRAIN_EMBED)
 else:
     embed = Embeddings(VOCAB, EMBED_HIDDEN_SIZE, input_length=MAX_LEN)
+
+reverse = lambda x: K.reverse(x, 0)
+reverse_output_shape = lambda input_shape: (input_shape[0], input_shape[1])
+
+rnn_kwargs = dict(output_dim=SENT_HIDDEN_SIZE, dropout_W=DP, dropout_U=DP)
+SumEmbeddings = keras.layers.core.Lambda(lambda x: K.sum(x, axis=1), output_shape=(SENT_HIDDEN_SIZE, ))
+
+translate = TimeDistributed(Dense(SENT_HIDDEN_SIZE, activation=ACTIVATION))
+
+premise = Input(shape=(MAX_LEN,), dtype='int32')
+hypothesis = Input(shape=(MAX_LEN,), dtype='int32')
+
+prem = embed(premise)
+hypo = embed(hypothesis)
+
+prem = translate(prem)
+hypo = translate(hypo)
+
+if RNN and LAYERS > 1:
+  for l in range(LAYERS - 1):
+    rnn = RNN(return_sequences=True, **rnn_kwargs)
+    prem = BatchNormalization()(rnn(prem))
+    hypo = BatchNormalization()(rnn(hypo))
+rnn = SumEmbeddings if not RNN else RNN(return_sequences=False, **rnn_kwargs)
+prem = rnn(prem)
+hypo = rnn(hypo)
+prem = BatchNormalization()(prem)
+hypo = BatchNormalization()(hypo)
+
+revhypo = Lambda(reverse, reverse_output_shape)(hypo)
+subjoint = merge([prem, hypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
+muljoint = merge([prem, hypo], mode='mul')
+rmuljoint = merge([prem, revhypo], mode='mul')
+rsubjoint = merge([prem, revhypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
+joint = merge([prem, subjoint, muljoint, rmuljoint, rsubjoint, hypo], mode='concat')
+
+joint = Dropout(DP)(joint)
+for i in range(3):
+  joint = Dense(2 * SENT_HIDDEN_SIZE, activation=ACTIVATION, W_regularizer=l2(L2) if L2 else None)(joint)
+  joint = Dropout(DP)(joint)
+  joint = BatchNormalization()(joint)
+
+pred = Dense(len(LABELS), activation='softmax')(joint)
+
+model = Model(input=[premise, hypothesis], output=pred)
+model.compile(optimizer=OPTIMIZER, loss='categorical_crossentropy', metrics=['accuracy'])
+
+model.summary()
+
+print('Training')
+_, tmpfn = tempfile.mkstemp()
+# Save the best model during validation and bail out of training early if we're not improving
+callbacks = [EarlyStopping(patience=PATIENCE), ModelCheckpoint(tmpfn, save_best_only=True, save_weights_only=True)]
+model.fit([training[0], training[1]], training[2], batch_size=BATCH_SIZE, nb_epoch=MAX_EPOCHS, validation_data=([validation[0], validation[1]], validation[2]), callbacks=callbacks)
+
+# Restore the best found model during validation
+model.load_weights(tmpfn)
+
+loss, acc = model.evaluate([test[0], test[1]], test[2], batch_size=BATCH_SIZE)
+print('Test loss / test accuracy = {:.4f} / {:.4f}'.format(loss, acc))

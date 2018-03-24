@@ -13,7 +13,7 @@ class glove_use():
             print('Computing GloVe')
 
             embedding_index = {}
-            with open('../Word2Vec/GloVe/glove.840B.300d.txt') as f:
+            with open('../Word2Vec/GloVe/glove.840B.300d.txt', encoding='utf8') as f:
                 for line in f:
                     values = line.split(' ')
                     word = values[0]
@@ -21,7 +21,7 @@ class glove_use():
                     embedding_index[word] = coefs
 
             embedding_matrix = np.zeros((VOCAB, EMBED_HIDDEN_SIZE))
-            for word,i in tokenizer.word_index.item():
+            for word, i in tokenizer.word_index.item():
                 embedding_vector = embedding_index.get(word)
                 if embedding_vector is not None:
                     embedding_matrix[i] = embedding_vector

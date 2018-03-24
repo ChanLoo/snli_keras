@@ -10,9 +10,20 @@ e-mail.com: chanlo@protonmail.ch
 
 import dataProcess
 import gloveUse
+import tempfile
+import keras
+import keras.backend as K 
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers import merge, Dense, Input, Dropout, TimeDistributed, Lambda
+from keras.layers.embeddings import Embedding
+from keras.layers.normalization import BatchNormalization
+from keras.layers.wrappers import Bidirectional
+from keras.models import Model
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
+from keras.regularizers import l2
 
+LABELS = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
 RNN = None
 LAYERS = 1
 USE_GLOVE = True
@@ -32,9 +43,9 @@ train_data_path = '../corpus/snli/snli_1.0_train.jsonl'
 dev_data_path = '../corpus/snli/snli_1.0_dev.jsonl'
 test_data_path = '../corpus/snli/snli_1.0_test.jsonl'
 process = dataProcess.data_process()
-train_data = process.get_data(train_data_path)
-dev_data = process.get_data(dev_data_path)
-test_data = process.get_data(test_data_path)
+train_data = process.get_data(train_data_path, LABELS)
+dev_data = process.get_data(dev_data_path, LABELS)
+test_data = process.get_data(test_data_path, LABELS)
 
 tokenizer = Tokenizer(lower=False, filters='')
 tokenizer.fit_on_texts(train_data[0] + train_data[1])
@@ -58,9 +69,9 @@ GLOVE_STORE = 'precomputed_glove.weights'
 if USE_GLOVE:
     use_glove = gloveUse.glove_use()
     embedding_matrix = use_glove.use_GloVe(GLOVE_STORE, VOCAB, EMBED_HIDDEN_SIZE, tokenizer)
-    embed = Embeddings(VOCAB, EMBED_HIDDEN_SIZE, weights=[embedding_matrix], input_length=MAX_LEN, trainable=TRAIN_EMBED)
+    embed = Embedding(VOCAB, EMBED_HIDDEN_SIZE, weights=[embedding_matrix], input_length=MAX_LEN, trainable=TRAIN_EMBED)
 else:
-    embed = Embeddings(VOCAB, EMBED_HIDDEN_SIZE, input_length=MAX_LEN)
+    embed = Embedding(VOCAB, EMBED_HIDDEN_SIZE, input_length=MAX_LEN)
 
 reverse = lambda x: K.reverse(x, 0)
 reverse_output_shape = lambda input_shape: (input_shape[0], input_shape[1])

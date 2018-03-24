@@ -20,18 +20,17 @@ from keras.utils import np_utils
 
 class data_process(object):
     def __init__(self):
-        self.LABELS = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
         pass
 
-    def get_data(self, filename):
+    def get_data(self, filename, LABELS):
         data_list = list(self.get_sentence(filename))
         premise = [sentence_1 for label,sentence_1,sentence_2 in data_list]
         hypothesis = [sentence_2 for label,sentence_1,sentence_2 in data_list]
         #print(max(len(x.split()) for x in premise))
         #print(max(len(x.split()) for x in hypothesis))
-        label_mark = np.array([self.LABELS[label] for label,sentence_1,sentence_2 in data_list])
-        label_mark = np_utils.to_categorical(label_mark,len(self.LABELS))
-        return premise,hypothesis,label_mark
+        label_mark = np.array([LABELS[label] for label,sentence_1,sentence_2 in data_list])
+        label_mark = np_utils.to_categorical(label_mark,len(LABELS))
+        return premise, hypothesis, label_mark
 
     def get_sentence(self, filename):
         for i,line in enumerate(open(filename)):
@@ -44,6 +43,7 @@ class data_process(object):
             if label == '-':
                 continue
             yield (label,sentence_1,sentence_2)
+            #yield (label, Sentence_1, Sentence_2)
 
     def extract_token_from_binary_parse(self, parse):
         return parse.replace('(',' ').replace(')',' ').replace('-LRB-','(').replace('-RRB-',')').split()

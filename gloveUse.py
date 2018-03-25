@@ -21,7 +21,7 @@ class glove_use():
                     embedding_index[word] = coefs
 
             embedding_matrix = np.zeros((VOCAB, EMBED_HIDDEN_SIZE))
-            for word, i in tokenizer.word_index.item():
+            for word, i in tokenizer.word_index.items():
                 embedding_vector = embedding_index.get(word)
                 if embedding_vector is not None:
                     embedding_matrix[i] = embedding_vector

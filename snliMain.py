@@ -101,6 +101,23 @@ hypo = rnn(hypo)
 prem = BatchNormalization()(prem)
 hypo = BatchNormalization()(hypo)
 
+'''
+revhypo = Lambda(reverse, reverse_output_shape)(hypo)
+subjoint = merge([prem, hypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
+muljoint = merge([prem, hypo], mode='mul')
+rmuljoint = merge([prem, revhypo], mode='mul')
+rsubjoint = merge([prem, revhypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
+joint = merge([prem, subjoint, muljoint, rmuljoint, rsubjoint, hypo], mode='concat')
+
+revhypo = Lambda(reverse, reverse_output_shape)(hypo)
+revprem = Lambda(reverse, reverse_output_shape)(prem)
+prh_subjoint = merge([prem, revhypo], mode=lambda x: x[0]-x[1],output_shape=(300,))
+prh_muljoint = merge([prem, revhypo], mode='mul')
+rph_subjoint = merge([revprem, hypo], mode=lambda x: x[0]-x[1],output_shape](300,))
+rph_muljoint = merge([revprem, hypo], mode='mul')
+joint = merge([prem, prh_subjoint, prh_muljoint, rph_subjoint, rph_muljoint, hypo], mode='concat')
+'''
+
 revhypo = Lambda(reverse, reverse_output_shape)(hypo)
 subjoint = merge([prem, hypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
 muljoint = merge([prem, hypo], mode='mul')

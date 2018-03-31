@@ -39,6 +39,7 @@ L2 = 4e-6
 ACTIVATION = 'relu'
 OPTIMIZER = 'rmsprop'
 
+
 train_data_path = '../corpus/snli/snli_1.0_train.jsonl'
 dev_data_path = '../corpus/snli/snli_1.0_dev.jsonl'
 test_data_path = '../corpus/snli/snli_1.0_test.jsonl'

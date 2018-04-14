@@ -9,12 +9,14 @@ e-mail.com: chanlo@protonmail.ch
 '''
 
 import keras
+from keras import backend as K
+from keras.layers import LSTM
 
-class DL_Model(object):
-    def __init__:
+class attention_LSTM(object):
+    def __init__(self):
         pass
     
-    def funcname(self, parameter_list):
+    def build_model(self, parameter_list):
         pass
 
 if __name__ == '__main__':

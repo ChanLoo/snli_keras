@@ -77,7 +77,6 @@ else:
 reverse = lambda x: K.reverse(x, 0)
 reverse_output_shape = lambda input_shape: (input_shape[0], input_shape[1])
 
-rnn_kwargs = dict(output_dim=SENT_HIDDEN_SIZE, dropout_W=DP, dropout_U=DP)
 SumEmbeddings = keras.layers.core.Lambda(lambda x: K.sum(x, axis=1), output_shape=(SENT_HIDDEN_SIZE, ))
 
 translate = TimeDistributed(Dense(SENT_HIDDEN_SIZE, activation=ACTIVATION))
@@ -91,14 +90,8 @@ hypo = embed(hypothesis)
 prem = translate(prem)
 hypo = translate(hypo)
 
-if RNN and LAYERS > 1:
-  for l in range(LAYERS - 1):
-    rnn = RNN(return_sequences=True, **rnn_kwargs)
-    prem = BatchNormalization()(rnn(prem))
-    hypo = BatchNormalization()(rnn(hypo))
-rnn = SumEmbeddings if not RNN else RNN(return_sequences=False, **rnn_kwargs)
-prem = rnn(prem)
-hypo = rnn(hypo)
+prem = SumEmbeddings(prem)
+hypo = SumEmbeddings(hypo)
 prem = BatchNormalization()(prem)
 hypo = BatchNormalization()(hypo)
 

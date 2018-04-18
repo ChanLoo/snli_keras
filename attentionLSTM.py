@@ -1,6 +1,6 @@
 #coding:utf-8
 '''
-Network model code for SNLI corpus.
+Atention LSTM
 ==================
 author: ChanLo
 e-mail.com: chanlo@protonmail.ch

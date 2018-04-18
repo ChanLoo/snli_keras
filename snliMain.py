@@ -22,6 +22,7 @@ from keras.models import Model
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.regularizers import l2
+from attentionLSTM import AttentionLSTM
 
 LABELS = {'contradiction': 0, 'neutral': 1, 'entailment': 2}
 RNN = None
@@ -86,9 +87,13 @@ hypothesis = Input(shape=(MAX_LEN,), dtype='int32')
 
 prem = embed(premise)
 hypo = embed(hypothesis)
-
+'''
 prem = translate(prem)
 hypo = translate(hypo)
+'''
+
+prem = AttentionLSTM(prem, attention_vec=prem)
+hypo = AttentionLSTM(hypo, attention_vec=hypo)
 
 prem = SumEmbeddings(prem)
 hypo = SumEmbeddings(hypo)

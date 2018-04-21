@@ -14,10 +14,12 @@ import tempfile
 import keras
 import keras.backend as K 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers import merge, Dense, Input, Dropout, TimeDistributed, Lambda
+from keras.layers import merge, Dense, Input, Dropout, TimeDistributed, Lambda, Flatten
+from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
 from keras.layers.normalization import BatchNormalization
 from keras.layers.wrappers import Bidirectional
+from keras.layers.core import *
 from keras.models import Model
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
@@ -82,6 +84,19 @@ SumEmbeddings = keras.layers.core.Lambda(lambda x: K.sum(x, axis=1), output_shap
 
 translate = TimeDistributed(Dense(SENT_HIDDEN_SIZE, activation=ACTIVATION))
 
+def attention_3d_block(inputs):
+    # inputs.shape = (batch_size, time_steps, input_dim)
+    input_dim = int(inputs.shape[2])
+    a = Permute((2, 1))(inputs)
+    a = Reshape((input_dim, 20))(a) # this line is not useful. It's just to know which dimension is what.
+    a = Dense(TIME_STEPS, activation='softmax')(a)
+    if SINGLE_ATTENTION_VECTOR:
+        a = Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(a)
+        a = RepeatVector(input_dim)(a)
+    a_probs = Permute((2, 1), name='attention_vec')(a)
+    output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
+    return output_attention_mul
+
 premise = Input(shape=(MAX_LEN,), dtype='int32')
 hypothesis = Input(shape=(MAX_LEN,), dtype='int32')
 
@@ -91,9 +106,20 @@ hypo = embed(hypothesis)
 prem = translate(prem)
 hypo = translate(hypo)
 '''
-
+'''
 prem = AttentionLSTM(prem, attention_vec=prem)
 hypo = AttentionLSTM(hypo, attention_vec=hypo)
+'''
+def attentionLayer(inputs):
+    lstm_out = LSTM(SENT_HIDDEN_SIZE, return_sequences=True)(inputs)
+    attention_mul = attention_3d_block(lstm_out)
+    attention_mul = Flatten()(attention_mul)
+    output = Dense(1, activation='sigmoid')(attention_mul)
+    return output
+
+prem = attentionLayer(prem)
+hypo = attentionLayer(hypo)
+
 
 prem = SumEmbeddings(prem)
 hypo = SumEmbeddings(hypo)

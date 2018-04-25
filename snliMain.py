@@ -102,13 +102,16 @@ hypothesis = Input(shape=(MAX_LEN,), dtype='int32')
 
 prem = embed(premise)
 hypo = embed(hypothesis)
-'''
+
 prem = translate(prem)
 hypo = translate(hypo)
-'''
+
+
 '''
 prem = AttentionLSTM(prem, attention_vec=prem)
 hypo = AttentionLSTM(hypo, attention_vec=hypo)
+'''
+
 '''
 def attentionLayer(inputs):
     lstm_out = LSTM(SENT_HIDDEN_SIZE, return_sequences=True)(inputs)
@@ -119,7 +122,7 @@ def attentionLayer(inputs):
 
 prem = attentionLayer(prem)
 hypo = attentionLayer(hypo)
-
+'''
 
 prem = SumEmbeddings(prem)
 hypo = SumEmbeddings(hypo)

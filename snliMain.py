@@ -20,7 +20,7 @@ from keras.layers.embeddings import Embedding
 from keras.layers.normalization import BatchNormalization
 from keras.layers.wrappers import Bidirectional
 from keras.layers.core import *
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.regularizers import l2
@@ -68,7 +68,7 @@ test = prepare_data(test_data)
 
 print('Build model...')
 print('Vocab size =', len(tokenizer.word_counts)+1)
-
+'''
 GLOVE_STORE = 'precomputed_glove.weights'
 if USE_GLOVE:
     use_glove = gloveUse.glove_use()
@@ -76,6 +76,7 @@ if USE_GLOVE:
     embed = Embedding(VOCAB, EMBED_HIDDEN_SIZE, weights=[embedding_matrix], input_length=MAX_LEN, trainable=TRAIN_EMBED)
 else:
     embed = Embedding(VOCAB, EMBED_HIDDEN_SIZE, input_length=MAX_LEN)
+
 
 reverse = lambda x: K.reverse(x, 0)
 reverse_output_shape = lambda input_shape: (input_shape[0], input_shape[1])
@@ -106,45 +107,10 @@ hypo = embed(hypothesis)
 prem = translate(prem)
 hypo = translate(hypo)
 
-
-'''
-prem = AttentionLSTM(prem, attention_vec=prem)
-hypo = AttentionLSTM(hypo, attention_vec=hypo)
-'''
-
-'''
-def attentionLayer(inputs):
-    lstm_out = LSTM(SENT_HIDDEN_SIZE, return_sequences=True)(inputs)
-    attention_mul = attention_3d_block(lstm_out)
-    attention_mul = Flatten()(attention_mul)
-    output = Dense(1, activation='sigmoid')(attention_mul)
-    return output
-
-prem = attentionLayer(prem)
-hypo = attentionLayer(hypo)
-'''
-
 prem = SumEmbeddings(prem)
 hypo = SumEmbeddings(hypo)
 prem = BatchNormalization()(prem)
 hypo = BatchNormalization()(hypo)
-
-'''
-revhypo = Lambda(reverse, reverse_output_shape)(hypo)
-subjoint = merge([prem, hypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
-muljoint = merge([prem, hypo], mode='mul')
-rmuljoint = merge([prem, revhypo], mode='mul')
-rsubjoint = merge([prem, revhypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
-joint = merge([prem, subjoint, muljoint, rmuljoint, rsubjoint, hypo], mode='concat')
-
-revhypo = Lambda(reverse, reverse_output_shape)(hypo)
-revprem = Lambda(reverse, reverse_output_shape)(prem)
-prh_subjoint = merge([prem, revhypo], mode=lambda x: x[0]-x[1],output_shape=(300,))
-prh_muljoint = merge([prem, revhypo], mode='mul')
-rph_subjoint = merge([revprem, hypo], mode=lambda x: x[0]-x[1],output_shape](300,))
-rph_muljoint = merge([revprem, hypo], mode='mul')
-joint = merge([prem, prh_subjoint, prh_muljoint, rph_subjoint, rph_muljoint, hypo], mode='concat')
-'''
 
 revhypo = Lambda(reverse, reverse_output_shape)(hypo)
 subjoint = merge([prem, hypo], mode=lambda x: x[0] - x[1],output_shape=(300,))
@@ -174,6 +140,8 @@ model.fit([train[0], train[1]], train[2], batch_size=BATCH_SIZE, nb_epoch=MAX_EP
 
 # Restore the best found model during validation
 model.load_weights(tmpfn)
+'''
+model = load_model('./dnn.h5')
 
 loss, acc = model.evaluate([test[0], test[1]], test[2], batch_size=BATCH_SIZE)
 print('Test loss / test accuracy = {:.4f} / {:.4f}'.format(loss, acc))
